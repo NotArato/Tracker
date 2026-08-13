@@ -18,20 +18,34 @@ const search = document.getElementById("search");
 
 dateInput.value = new Date().toISOString().slice(0, 10);
 
-// Fixed: Marked function as async to allow await
+// Fetch data from Supabase across all devices
+async function fetchExpenses() {
+    const { data, error } = await supabaseClient
+        .from("expenses")
+        .select("*");
+
+    if (error) {
+        console.error("Error fetching from Supabase:", error);
+        return;
+    }
+
+    if (data) {
+        expenses = data;
+        localStorage.setItem(KEY, JSON.stringify(expenses));
+        render();
+    }
+}
+
 async function save(newExpense = null) {
     localStorage.setItem(KEY, JSON.stringify(expenses));
 
     if (newExpense) {
-        const { data, error } = await supabaseClient
+        const { error } = await supabaseClient
             .from("expenses")
             .insert([newExpense]);
 
         if (error) {
-            console.error("Supabase Error Details:", error);
-            alert("Supabase Error: " + error.message);
-        } else {
-            console.log("Successfully saved to Supabase:", data);
+            console.error("Supabase insert error:", error);
         }
     }
 }
@@ -69,12 +83,12 @@ function render() {
             .includes(query);
         })
         .sort((a, b) =>
-            b.date.localeCompare(a.date)
+            (b.date || "").localeCompare(a.date || "")
         );
 
     document.getElementById("total").textContent = money(
         expenses.reduce(
-            (sum, expense) => sum + Number(expense.price),
+            (sum, expense) => sum + Number(expense.price || 0),
             0
         )
     );
@@ -139,7 +153,6 @@ form.addEventListener("submit", async event => {
 window.removeExpense = async function(id) {
     expenses = expenses.filter(expense => expense.id !== id);
 
-    // Delete from Supabase
     const { error } = await supabaseClient
         .from("expenses")
         .delete()
@@ -157,7 +170,6 @@ document.getElementById("clearAll").addEventListener("click", async () => {
     if (expenses.length && confirm("Delete all expenses?")) {
         expenses = [];
 
-        // Clear all from Supabase
         const { error } = await supabaseClient
             .from("expenses")
             .delete()
@@ -174,4 +186,8 @@ document.getElementById("clearAll").addEventListener("click", async () => {
 
 search.addEventListener("input", render);
 
+// Initial local load for instant UI response
 render();
+
+// Fetch latest data from Supabase server
+fetchExpenses();
