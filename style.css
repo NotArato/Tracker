@@ -170,7 +170,6 @@ button {
 }
 
 @media (max-width: 480px) {
-
     .row {
         grid-template-columns: 1fr;
         gap: 0;

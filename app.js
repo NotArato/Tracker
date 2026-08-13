@@ -18,12 +18,12 @@ const search = document.getElementById("search");
 
 dateInput.value = new Date().toISOString().slice(0, 10);
 
-// Fix: Added async keyword to allow await inside save()
+// Fixed: Marked function as async to allow await
 async function save(newExpense = null) {
-    // 1. Keep LocalStorage in sync
+    // 1. Save to local storage
     localStorage.setItem(KEY, JSON.stringify(expenses));
 
-    // 2. Insert into Supabase if a new item is passed
+    // 2. Save to Supabase database if a new expense was passed
     if (newExpense) {
         const { error } = await supabaseClient
             .from("expenses")
@@ -131,15 +131,23 @@ form.addEventListener("submit", async event => {
 
     form.reset();
     dateInput.value = new Date().toISOString().slice(0, 10);
+
     render();
 });
 
 window.removeExpense = async function(id) {
     expenses = expenses.filter(expense => expense.id !== id);
-    
-    // Also remove from Supabase database
-    await supabaseClient.from("expenses").delete().eq("id", id);
-    
+
+    // Delete from Supabase
+    const { error } = await supabaseClient
+        .from("expenses")
+        .delete()
+        .eq("id", id);
+
+    if (error) {
+        console.error("Supabase delete error:", error);
+    }
+
     save();
     render();
 };
@@ -147,7 +155,17 @@ window.removeExpense = async function(id) {
 document.getElementById("clearAll").addEventListener("click", async () => {
     if (expenses.length && confirm("Delete all expenses?")) {
         expenses = [];
-        await supabaseClient.from("expenses").delete().neq("id", "0");
+
+        // Clear all from Supabase
+        const { error } = await supabaseClient
+            .from("expenses")
+            .delete()
+            .neq("id", "0");
+
+        if (error) {
+            console.error("Supabase clear error:", error);
+        }
+
         save();
         render();
     }
