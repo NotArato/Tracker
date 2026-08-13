@@ -20,19 +20,25 @@ dateInput.value = new Date().toISOString().slice(0, 10);
 
 // Fetch data from Supabase across all devices
 async function fetchExpenses() {
-    const { data, error } = await supabaseClient
-        .from("expenses")
-        .select("*");
+    try {
+        const { data, error } = await supabaseClient
+            .from("expenses")
+            .select("*");
 
-    if (error) {
-        console.error("Error fetching from Supabase:", error);
-        return;
-    }
+        if (error) {
+            console.error("Error fetching from Supabase:", error);
+            return;
+        }
 
-    if (data) {
-        expenses = data;
-        localStorage.setItem(KEY, JSON.stringify(expenses));
-        render();
+        if (data) {
+            expenses = data;
+            // Update local cache
+            localStorage.setItem(KEY, JSON.stringify(expenses));
+            // Force re-render on the screen
+            render();
+        }
+    } catch (err) {
+        console.error("Network or unexpected error:", err);
     }
 }
 
