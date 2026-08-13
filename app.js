@@ -20,17 +20,18 @@ dateInput.value = new Date().toISOString().slice(0, 10);
 
 // Fixed: Marked function as async to allow await
 async function save(newExpense = null) {
-    // 1. Save to local storage
     localStorage.setItem(KEY, JSON.stringify(expenses));
 
-    // 2. Save to Supabase database if a new expense was passed
     if (newExpense) {
-        const { error } = await supabaseClient
+        const { data, error } = await supabaseClient
             .from("expenses")
             .insert([newExpense]);
 
         if (error) {
-            console.error("Supabase insert error:", error);
+            console.error("Supabase Error Details:", error);
+            alert("Supabase Error: " + error.message);
+        } else {
+            console.log("Successfully saved to Supabase:", data);
         }
     }
 }
