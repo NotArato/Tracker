@@ -25,7 +25,7 @@ async function save(newExpense = null) {
 
     // 2. Insert into Supabase if a new item is passed
     if (newExpense) {
-        const { data, error } = await supabaseClient
+        const { error } = await supabaseClient
             .from("expenses")
             .insert([newExpense]);
 
