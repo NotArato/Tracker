@@ -1,3 +1,12 @@
+const SUPABASE_URL = "https://yocsxzpjlogexfjdwziu.supabase.co";
+const SUPABASE_KEY = "sb_publishable_jIAUfDPQFdGcHhYsdo4mPQ_iyX7C_UR";
+
+const supabaseClient =
+    supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_KEY
+    );
+
 const KEY = "my_expenses_v1";
 
 let expenses = JSON.parse(
@@ -14,10 +23,9 @@ dateInput.value =
 
 function save() {
 
-    localStorage.setItem(
-        KEY,
-        JSON.stringify(expenses)
-    );
+    await supabaseClient
+    .from("expenses")
+    .insert(...)
 
 }
 
